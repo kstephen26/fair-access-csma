@@ -9,13 +9,14 @@ class Station(threading.Thread):
 	Base class for implementing a wireless station (transmitter).
 	'''
 
-	def __init__(self, id, q_to_ap, q_to_station, pkts_p_sec, *args, **kwargs):
+	def __init__(self, id, q_to_ap, q_to_station, pkts_p_sec, packet_size, *args, **kwargs):
 		self.id = id
 		self.q_to_ap = q_to_ap
 		self.q_to_station = q_to_station
 		# print("packets per second: ", pkts_p_sec)
 		self.interval = 1.0/pkts_p_sec
 		self.last_tx = None
+		self.packet_size = packet_size
 
 		print('Setting up station id:{}'.format(id))
 

@@ -128,12 +128,13 @@ class RTS_CTS(station.Station):
 	this network, receiving a CTS message reserves the channel for a single DATA
 	packet.
 	'''
-	def __init__(self, id, q_to_ap, q_to_station, interval):
-		print(q_to_ap, interval)
-		super().__init__(id, q_to_ap, q_to_station, interval)
+	def __init__(self, id, q_to_ap, q_to_station, interval, packet_size):
+		super().__init__(id, q_to_ap, q_to_station, interval, packet_size)
+		self.packet_size = packet_size
 
 	def run(self):
 		# Continuously send packets
+		alpha = 0.01
 
 		while True:
 			# Block until there is a packet ready to send
@@ -143,13 +144,13 @@ class RTS_CTS(station.Station):
 			while True:
 
 				if self.sense() is False:
-					time.sleep(0.00005)					 # DIFS from online wiki (50 us for IEEE 802.11b)
+					time.sleep(0.00005*alpha*self.packet_size)					 # DIFS from online wiki (50 us for IEEE 802.11b)
 
 					if self.sense() is False:
 						randomNum = random.randint(0, (2 ** k) - 1)
 
 						while randomNum > 0:
-							time.sleep(0.01)
+							time.sleep(0.01*alpha*self.packet_size)
 
 							if self.sense() is False:
 								randomNum -= 1
