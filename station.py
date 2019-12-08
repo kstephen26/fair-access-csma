@@ -63,6 +63,7 @@ class Station(threading.Thread):
 			return None
 		elif msg == 'NOCTS':
 			return None
+
 		return msg
 
 	def send(self, pkt, pktheader):

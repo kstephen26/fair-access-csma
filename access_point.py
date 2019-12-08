@@ -144,10 +144,12 @@ class AccessPoint():
 							alpha = 0.8
 							beta = 0.3
 							gamma = 0.05
+							delta =0.1
 							header = msg['header']
+							packetpr = 0.1
 							p = header['latency']
 							filepr = 0.1
-							sizepr = header['filesize']
+							sizepr = header['filesize'] 
 							if header['filetype'] == 'music':
 								filepr = 0.3
 								# print("music")
@@ -158,7 +160,9 @@ class AccessPoint():
 								filepr = 0.6
 								# print("text")
 
-							priority = (alpha*p + beta*filepr + gamma*sizepr)
+							priority = (alpha*p + beta*filepr + gamma*sizepr + delta*packetpr)
+					
+
 
 							if random.random() < priority:
 								self.cts_node = msg['id']

@@ -167,6 +167,7 @@ class RTS_CTS(station.Station):
 
 						if recv == 'CTS':
 
+
 							# while loop because if no ACK is received by the AP then it deadlocks.
 							# If the ACK is sent and then immediately breaks, the reservation is never freed
 
@@ -175,8 +176,9 @@ class RTS_CTS(station.Station):
 								recv = self.receive()
 
 							break
-
+							
 						if k >= 3:
 							break
 
 						k += 1
+						
