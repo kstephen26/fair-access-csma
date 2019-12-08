@@ -1,4 +1,5 @@
-
+import heapq
+import random
 
 class AccessPoint():
 	'''
@@ -27,12 +28,21 @@ class AccessPoint():
 
 	def run(self):
 		# Loop until we have enough packets from each station.
+
+		priorityqueue = []
+		heapq.heapify(priorityqueue)
+		p = 0.7
+		count = 0
+		id_dict = {}
+		actid = None
+
 		while True:
 			# Wait until we have a "packet" to receive from some station.
 			# Note: packets are actually two queue messages: a START and a DONE
 			# message.
 			msg = self.recv_queue.get()
-
+			header = msg['header']
+			
 			# print('AP: {} sent {}({})'.format(msg['id'], msg['type'], msg['mod']))
 
 			# Handle each message appropriately.
@@ -83,19 +93,177 @@ class AccessPoint():
 						# print('AP: Data packet from {} was corrupted'.format(msg['id']))
 
 			elif msg['type'] == 'RTS':
+
+				# if msg['mod'] == 'START':
+				# 	self.active[msg['id']]['tx'] = 'RTS'
+				# 	# Check if any other transmissions should be corrupted
+				# 	self._check_for_collisions(msg['id'])
+
+
+				# elif msg['mod'] == 'DONE':
+				# 	if self.active[msg['id']]['corrupted'] == False:
+				# 		if self.cts_node != None:
+				# 			print('Um, another node has control!')
+				# 		else:
+				# 			self.cts_node = msg['id']
+				# 			self._send_to_station(msg['id'], 'CTS')
+
+				# 	else:
+				# 		# Packet was corrupted, nothing we can do.
+				# 		self.active[msg['id']]['tx'] = None
+				# 		self.active[msg['id']]['corrupted'] = False
+				# 		self._send_to_station(msg['id'], 'NOCTS')
+
+				# elif msg['type'] == 'RTS':
+
+				# 	if random.random() < 0.7:
+				# 		self.active[msg['id']]['tx'] = 'RTS'
+				# 		self._check_for_collisions(msg['id'])
+				# 		if self.active[msg['id']]['corrupted'] == False:
+				# 			self.cts_node = msg['id']
+				# 			self._send_to_station(msg['id'], 'CTS')
+				# 		else:
+				# 			# Packet was corrupted, nothing we can do.
+				# 			self.active[msg['id']]['tx'] = None
+				# 			self.active[msg['id']]['corrupted'] = False
+				# 			self._send_to_station(msg['id'], 'NOCTS')
+
 				if msg['mod'] == 'START':
+
 					self.active[msg['id']]['tx'] = 'RTS'
 					# Check if any other transmissions should be corrupted
 					self._check_for_collisions(msg['id'])
-
-
+					# build a probabilistic function that assigns priorities to users based on the contents in their file
+				
 				elif msg['mod'] == 'DONE':
 					if self.active[msg['id']]['corrupted'] == False:
 						if self.cts_node != None:
 							print('Um, another node has control!')
 						else:
-							self.cts_node = msg['id']
-							self._send_to_station(msg['id'], 'CTS')
+							k = 0.7
+							alpha = 0.8
+							beta = 0.3
+							gamma = 0.05
+							header = msg['header']
+							p = header['latency']
+							filepr = 0.1
+							sizepr = header['filesize']
+							if header['filetype'] == 'music':
+								filepr = 0.3
+								# print("music")
+							elif header['filetype'] == 'video':
+								filepr = 0.4
+								# print("video")
+							elif header['filetype'] == 'text':
+								filepr = 0.6
+								# print("text")
+
+							priority = (alpha*p + beta*filepr + gamma*sizepr)
+
+							if random.random() < priority:
+								self.cts_node = msg['id']
+								self._send_to_station(msg['id'], 'CTS')
+							else:
+								# Packet was corrupted, nothing we can do.
+								self.active[msg['id']]['tx'] = None
+								self.active[msg['id']]['corrupted'] = False
+								self._send_to_station(msg['id'], 'NOCTS')
+
+				# elif msg['mod'] == 'DONE':
+
+				# 	pq = []
+				# 	if self.active[msg['id']]['corrupted'] == False:
+				# 		print("hello")
+				# 		if self.cts_node != None:
+				# 			print('Um, another node has control!')
+				# 		else:
+							
+				# 			header = msg['header']
+				# 			print(header['filetype'])
+				# 			if header['filetype'] == 'music':
+				# 				if random.random() <= 0.99:
+				# 					self.cts_node = msg['id']
+				# 					self._send_to_station(msg['id'], 'CTS')
+				# 					print("sending CTS For: ", msg['id'])
+				# 				else:
+				# 					self.active[msg['id']]['tx'] = None
+				# 					self.active[msg['id']]['corrupted'] = False
+				# 					self._send_to_station(msg['id'], 'NOCTS')
+				# 			if header['filetype'] == 'video':
+				# 				if random.random() <= 0.99:
+				# 					self.cts_node = msg['id']
+				# 					self._send_to_station(msg['id'], 'CTS')
+				# 					print("sending CTS For: ", msg['id'])
+				# 				else:
+				# 					pq.append(msg['id'])
+				# 					if random.random() < 0.7:
+				# 						self.cts_node = pq[0]
+				# 						self._send_to_station(pq[0], 'CTS')
+				# 			if header['filetype'] == 'text':
+				# 				if random.random() <= 0.99:
+				# 					self.cts_node = msg['id']
+				# 					self._send_to_station(msg['id'], 'CTS')
+				# 					print("sending CTS For: ", msg['id'])
+				# 				else:
+				# 					pq.append(msg['id'])
+				# 					if random.random() < 0.7:
+				# 						self.cts_node = pq[0]
+				# 						self._send_to_station(pq[0], 'CTS')
+						
+				# elif msg['mod'] == 'DONE':
+
+				# 	k = 0.7
+				# 	alpha = 0.8
+				# 	beta = 0.3
+				# 	gamma = 0.05
+				# 	header = msg['header']
+				# 	p = header['latency']
+				# 	filepr = 0.1
+				# 	sizepr = header['filesize']
+				# 	if header['filetype'] == 'music':
+				# 		filepr = 0.3
+				# 		# print("music")
+				# 	elif header['filetype'] == 'video':
+				# 		filepr = 0.4
+				# 		# print("video")
+				# 	elif header['filetype'] == 'text':
+				# 		filepr = 0.6
+				# 		# print("text")
+
+				# 	priority = -1*(alpha*p + beta*filepr + gamma*sizepr)
+
+				# 	if random.random() <= k:
+				# 		heapq.heappush(priorityqueue,(priority, msg['id']))
+				# 		id_dict[msg['id']] = priority
+				# 		print("added to dict")
+
+				# 	else:
+				# 		l = (round(random.random(),2))
+				# 		heapq.heappush(priorityqueue,(l, msg['id']))
+				# 		id_dict[msg['id']] = l
+				# 		print("added to dict", id_dict[msg['id']])
+
+
+				# 	print(msg['id'])
+				# 	print(id_dict)
+
+				# 	if msg['id'] in id_dict and priorityqueue != []:
+				# 		print("id in dict")
+				# 		print("queue is ", priorityqueue)
+				# 		pri, msg_id = heapq.heappop(priorityqueue)
+				# 		if self.active[msg['id']]['corrupted'] == False:
+				# 			print("not corrupted")
+				# 			if self.cts_node != None:
+				# 				print('Um, another node has control!')
+				# 			else:
+
+				# 				self.cts_node = msg_id
+				# 				print("sending CTS For: ", msg_id)
+				# 				self._send_to_station(msg_id, 'CTS')
+				# 				count += 1
+				# 				print("count is", count)
+				# 		else:
+				# 			print("corrupted!")
 
 					else:
 						# Packet was corrupted, nothing we can do.

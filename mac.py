@@ -11,7 +11,7 @@ class NullMac(station.Station):
 
 	The node makes no attempt to avoid collisions.
 	'''
-	def __init__(self, id, q_to_ap, q_to_station, interval):
+	def __init__(self, id, q_to_ap, q_to_station, interval, header):
 		super().__init__(id, q_to_ap, q_to_station, interval)
 
 	def run(self):
@@ -24,7 +24,7 @@ class NullMac(station.Station):
 			# Try up to three times to send the packet successfully
 			while True:
 
-				self.send('DATA')
+				self.send('DATA', header)
 
 				# Wait for a possible ACK. If we get one, we are done with this
 				# packet. If all of our retries fail then we just consider this
@@ -47,7 +47,7 @@ class NullMacExponentialBackoff(station.Station):
 
 	The sender should use up to two retransmissions if an ACK is not received.
 	'''
-	def __init__(self, id, q_to_ap, q_to_station, interval):
+	def __init__(self, id, q_to_ap, q_to_station, interval, header):
 		super().__init__(id, q_to_ap, q_to_station, interval)
 
 	def run(self):
@@ -60,7 +60,7 @@ class NullMacExponentialBackoff(station.Station):
 			while True:
 
 				time.sleep(0.01 * random.randint(0, (2 ** n) - 1))
-				self.send('DATA')
+				self.send('DATA', header)
 				recv = self.receive()
 
 				if recv == 'ACK':
@@ -78,7 +78,7 @@ class CSMA_CA(station.Station):
 	Avoidance. The node should only transmit data after sensing the channel is
 	clear.
 	'''
-	def __init__(self, id, q_to_ap, q_to_station, interval):
+	def __init__(self, id, q_to_ap, q_to_station, interval, header):
 		# print("interval is: ", interval)
 		super().__init__(id, q_to_ap, q_to_station, interval)
 
@@ -109,7 +109,7 @@ class CSMA_CA(station.Station):
 										break
 
 
-						self.send('DATA')
+						self.send('DATA', header)
 						recv = self.receive()
 
 						if recv == 'ACK':
@@ -128,13 +128,15 @@ class RTS_CTS(station.Station):
 	this network, receiving a CTS message reserves the channel for a single DATA
 	packet.
 	'''
-	def __init__(self, id, q_to_ap, q_to_station, interval, packet_size):
-		super().__init__(id, q_to_ap, q_to_station, interval, packet_size)
+	def __init__(self, id, q_to_ap, q_to_station, interval, packet_size, packet_header):
+		super().__init__(id, q_to_ap, q_to_station, interval, packet_size, packet_header)
 		self.packet_size = packet_size
+		self.header = packet_header
 
 	def run(self):
 		# Continuously send packets
 		alpha = 0.01
+		header = self.header
 
 		while True:
 			# Block until there is a packet ready to send
@@ -160,7 +162,7 @@ class RTS_CTS(station.Station):
 										randomNum -= 1
 										break
 
-						self.send('RTS')
+						self.send('RTS', header)
 						recv = self.receive()
 
 						if recv == 'CTS':
@@ -169,7 +171,7 @@ class RTS_CTS(station.Station):
 							# If the ACK is sent and then immediately breaks, the reservation is never freed
 
 							while recv is not 'ACK':
-								self.send('DATA')
+								self.send('DATA', header)
 								recv = self.receive()
 
 							break

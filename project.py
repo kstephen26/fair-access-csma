@@ -100,6 +100,13 @@ station_queues = []
 
 # Setup and start each wireless station.
 
+packet_headers = {0:{'latency':0.1, 'filetype':'video', 'filesize': 124}, 
+                    1:{'latency':0.5, 'filetype':'music', 'filesize': 13},
+                    2:{'latency':0.7, 'filetype':'text', 'filesize': 1},
+                    3:{'latency':0.1, 'filetype':'music', 'filesize': 50}
+                    }
+
+
 for i in range(NUMBER_STATIONS):
 
     q = queue.Queue()
@@ -110,7 +117,9 @@ for i in range(NUMBER_STATIONS):
 
     packet_size = i*100
 
-    t = mac_protocol(i, q_to_ap, q, PACKETS_PER_SECOND, packet_size)
+    packet_header = packet_headers[i]
+
+    t = mac_protocol(i, q_to_ap, q, PACKETS_PER_SECOND, packet_size, packet_header)
 
     t.daemon = True
 

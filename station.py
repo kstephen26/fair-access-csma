@@ -9,7 +9,7 @@ class Station(threading.Thread):
 	Base class for implementing a wireless station (transmitter).
 	'''
 
-	def __init__(self, id, q_to_ap, q_to_station, pkts_p_sec, packet_size, *args, **kwargs):
+	def __init__(self, id, q_to_ap, q_to_station, pkts_p_sec, packet_size, packet_header, *args, **kwargs):
 		self.id = id
 		self.q_to_ap = q_to_ap
 		self.q_to_station = q_to_station
@@ -65,9 +65,9 @@ class Station(threading.Thread):
 			return None
 		return msg
 
-	def send(self, pkt):
+	def send(self, pkt, pktheader):
 		'''
-		Send a packet to the access point.
+		Send a packet to the access point. We change this function to send not only a packet but also a corresponding packet header.
 
 		Valid packets are:
 		- "DATA": A data packet.
@@ -75,21 +75,21 @@ class Station(threading.Thread):
 		'''
 
 		if pkt == 'RTS':
-			self._send_to_access_point('RTS', 'START')
+			self._send_to_access_point('RTS', pktheader, 'START')
 			time.sleep(0.005) # 5 millisecond transmission time
-			self._send_to_access_point('RTS', 'DONE')
+			self._send_to_access_point('RTS', pktheader, 'DONE')
 
 		elif pkt == 'DATA':
-			self._send_to_access_point('DATA', 'START')
+			self._send_to_access_point('DATA', pktheader, 'START')
 			time.sleep(0.01) # 10 millisecond transmission time
-			self._send_to_access_point('DATA', 'DONE')
+			self._send_to_access_point('DATA', pktheader, 'DONE')
 
 	def sense(self):
 		'''
 		Returns True if the wireless channel is occupied, false otherwise.
 		'''
-
-		self._send_to_access_point('SENSE')
+		pktheader = {}
+		self._send_to_access_point('SENSE', pktheader)
 		msg = self.q_to_station.get()
 		if msg == 'channel_active':
 			return True
@@ -97,15 +97,17 @@ class Station(threading.Thread):
 			return False
 		else:
 			print('Huh?? Should not receive some other packet in sense.')
+			print(msg)
 			return None
 
 
 	# Internal function, do not call from mac.py.
-	def _send_to_access_point(self, type, modifier=''):
+	def _send_to_access_point(self, type, header={}, modifier=''):
 		to_send = {
 			'id': self.id,
 			'type': type,
-			'mod': modifier
+			'mod': modifier,
+			'header':header
 		}
 		self.q_to_ap.put(to_send)
 
