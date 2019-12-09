@@ -162,8 +162,6 @@ class AccessPoint():
 
 							priority = (alpha*p + beta*filepr + gamma*sizepr + delta*packetpr)
 					
-
-
 							if random.random() < priority:
 								self.cts_node = msg['id']
 								self._send_to_station(msg['id'], 'CTS')
