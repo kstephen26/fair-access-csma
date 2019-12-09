@@ -110,7 +110,6 @@ packet_headers = {0:{'latency':0.1, 'filetype':'video', 'filesize': 124},
 for i in range(NUMBER_STATIONS):
 
     q = queue.Queue()
-
     station_queues.append(q)
 
     print(PACKETS_PER_SECOND)
@@ -127,7 +126,7 @@ for i in range(NUMBER_STATIONS):
 
 
 
-    # Delay to space stations
+        # Delay to space stations
 
     time.sleep((1.0/PACKETS_PER_SECOND) / NUMBER_STATIONS)
 

@@ -1,6 +1,7 @@
 import random
 import time
 import station
+import time
 
 
 class NullMac(station.Station):
