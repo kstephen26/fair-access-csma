@@ -116,7 +116,6 @@ packet_headers = {0:{'latency':0.1, 'filetype':'video', 'filesize': 1200},
                     13:{'latency':0.5, 'filetype':'music', 'filesize': 14},
                     14:{'latency':0.7, 'filetype':'text', 'filesize': 1},
                     15:{'latency':0.1, 'filetype':'music', 'filesize': 50}
-                    }
 
 costs = []
 
@@ -132,14 +131,11 @@ for i in range(NUMBER_STATIONS):
     packet_header = packet_headers[i]
 
     if packet_header['filetype'] == 'music':
-        filecost = 0.9
-        # print("music")
+        filecost = 0.9 
     elif packet_header['filetype'] == 'video':
         filecost = 0.8
-        # print("video")
     elif packet_header['filetype'] == 'text':
         filecost = 0.3
-        # print("text")
     costs.append(0.01*packet_header['filesize']*filecost/packet_header['latency'])
 
     t = mac_protocol(i, q_to_ap, q, PACKETS_PER_SECOND, packet_size, packet_header)

@@ -147,26 +147,30 @@ class AccessPoint():
 								beta = 0.3
 								gamma = 1
 								#possibly modify based on total packets needed to send
-								delta =0.1
+								delta =0.01
 								header = msg['header']
-								proportion = self.pkts_received[msg['id']] / self.pkts_to_receive
+								if self.pkts_received[msg['id']] != 0:
+									proportion = self.pkts_to_receive / self.pkts_received[msg['id']]
+								else:
+									proportion = self.pkts_to_receive
 								#packetpr = self.pkts_received[msg['id']]
 								p = header['latency']
 								filepr = 0.1
 								sizepr = header['filesize'] 
-								if header['filetype'] == 'music':
+								if header['priority'] == header['filetype']:
+									filepr = 0.6
+								elif header['filetype'] == 'music':
 									filepr = 0.3
 									# print("music")
 								elif header['filetype'] == 'video':
 									filepr = 0.4
-									# print("video")
+										# print("video")
 								elif header['filetype'] == 'text':
 									filepr = 0.6
 									# print("text")
-								# print(alpha*p, beta*filepr, gamma*sizepr,1- delta*proportion)
-								priority = 0.6*(alpha*p + beta*filepr + gamma/sizepr) 
-									# + (1 - delta*proportion))
-								print(priority)
+								#print(alpha*p, beta*filepr, gamma*sizepr,1- delta*proportion)
+								priority = 0.6*(alpha*p + beta*filepr + gamma/sizepr + (1-delta*proportion))
+					
 								if random.random() < priority:
 									self.cts_node = msg['id']
 									self._send_to_station(msg['id'], 'CTS')
@@ -259,13 +263,6 @@ class AccessPoint():
 				print("Total Network Cost: ", sum(xcosts))
 				break
 
-
-	##
-	# ## Internal Functions
-	# ##
-	# def _calcCosts(self):
-	# 	costs = []
-		
 	def _check_for_collisions(self, id):
 		# If there are no collisions at the access point then we can
 		# quickly return.
