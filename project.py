@@ -103,7 +103,7 @@ station_queues = []
 packet_headers = {0:{'latency':0.1, 'filetype':'video', 'filesize': 124}, 
                     1:{'latency':0.5, 'filetype':'music', 'filesize': 13},
                     2:{'latency':0.7, 'filetype':'text', 'filesize': 1},
-                    3:{'latency':0.1, 'filetype':'music', 'filesize': 50}
+                    3:{'latency':0.1, 'filetype':'music', 'filesize': 50},
                     }
 
 

@@ -1,5 +1,6 @@
 import heapq
 import random
+import time 
 
 class AccessPoint():
 	'''
@@ -82,6 +83,10 @@ class AccessPoint():
 						self.pkts_received[msg['id']] += 1
 						self.active[msg['id']]['tx'] = None
 						self.cts_node = None
+						#Why would this be going here? That is only delaying the ACK
+						#size_factor = 0.0001
+						#sleeptime = header['filesize']*1/header['latency']*size_factor 
+						#time.sleep(sleeptime)
 						self._send_to_station(msg['id'], 'ACK')
 						#print('AP: Got packet #{} from station id:{}'.format(self.pkts_received[msg['id']], msg['id']))
 					else:
@@ -134,7 +139,13 @@ class AccessPoint():
 					# Check if any other transmissions should be corrupted
 					self._check_for_collisions(msg['id'])
 					# build a probabilistic function that assigns priorities to users based on the contents in their file
-				
+				# elif msg['mod'] == 'DONE':
+				# 	if self.active[msg['id']]['corrupted'] == False:
+				# 		if self.cts_node != None:
+				# 			print('Um, another node has control!')
+				# 		else:
+				# 			self.cts_node = msg['id']
+				# 			self._send_to_station(msg['id'], 'CTS')
 				elif msg['mod'] == 'DONE':
 					if self.active[msg['id']]['corrupted'] == False:
 						if self.cts_node != None:
@@ -145,7 +156,7 @@ class AccessPoint():
 							beta = 0.3
 							gamma = 0.05
 							#possibly modify based on total packets needed to send
-							delta =0.1
+							delta =0.2
 							header = msg['header']
 							proportion = self.pkts_received[msg['id']] / self.pkts_to_receive
 							#packetpr = self.pkts_received[msg['id']]
@@ -162,11 +173,13 @@ class AccessPoint():
 								filepr = 0.6
 								# print("text")
 							#print(alpha*p, beta*filepr, gamma*sizepr,1- delta*proportion)
-							priority = (alpha*p + beta*filepr + gamma*sizepr + (1 - delta*proportion))
-					
+							#+ (1-delta*proportion))
 
+							priority = (alpha*p + beta*filepr + gamma*sizepr - (delta*proportion))
+							print ("pri",priority)
 
 							if random.random() < priority:
+								print("inside")
 								self.cts_node = msg['id']
 								self._send_to_station(msg['id'], 'CTS')
 							else:

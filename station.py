@@ -17,6 +17,7 @@ class Station(threading.Thread):
 		self.interval = 1.0/pkts_p_sec
 		self.last_tx = None
 		self.packet_size = packet_size
+		self.packet_header = packet_header
 
 		print('Setting up station id:{}'.format(id))
 
@@ -36,10 +37,14 @@ class Station(threading.Thread):
 			if self.interval > diff:
 				# Calculate how much more to wait, and add some randomness
 				# while keeping the average interval the same
+
 				to_wait = self.interval - diff
+				print(to_wait)
 				to_wait += ((random.random() - 0.5) * (0.2*to_wait))
+				final_wait = to_wait*self.packet_header['filesize']*(1/self.packet_header['latency'])*0.01
+				print("prev,now", to_wait, final_wait)
 				# print('waiting... {}s'.format(to_wait))
-				time.sleep(to_wait)
+				time.sleep(final_wait)
 
 		self.last_tx = time.time()
 
