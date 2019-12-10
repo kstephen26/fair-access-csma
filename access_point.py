@@ -261,7 +261,7 @@ class AccessPoint():
 	def _calcCosts(self):
 		costs = []
 		while True:
-			sg = self.recv_queue.get()
+			msg = self.recv_queue.get()
 			header = msg['header']
 			costs.append(0.01*header['filesize'])
 
