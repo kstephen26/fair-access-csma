@@ -148,12 +148,14 @@ class RTS_CTS(station.Station):
 
 				if self.sense() is False:
 					time.sleep(0.00005*alpha*self.packet_size)					 # DIFS from online wiki (50 us for IEEE 802.11b)
+					# time.sleep(0.00005)
 
 					if self.sense() is False:
 						randomNum = random.randint(0, (2 ** k) - 1)
 
 						while randomNum > 0:
 							time.sleep(0.01*alpha*self.packet_size)
+							# time.sleep(0.01)
 
 							if self.sense() is False:
 								randomNum -= 1

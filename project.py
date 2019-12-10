@@ -14,10 +14,10 @@ import access_point
 
 import mac
 
-
+count = 0
 
 # Handle command line arguments.
-
+# for i in range(3):
 sys.argv = ['project.py', '4', '25', '100', 'neighbors', 'normal', 'RTS_CTS']
 
 
@@ -101,9 +101,21 @@ station_queues = []
 # Setup and start each wireless station.
 
 packet_headers = {0:{'latency':0.1, 'filetype':'video', 'filesize': 124}, 
-                    1:{'latency':0.5, 'filetype':'music', 'filesize': 13},
-                    2:{'latency':0.7, 'filetype':'text', 'filesize': 1},
-                    3:{'latency':0.1, 'filetype':'music', 'filesize': 50}
+                    1:{'latency':0.5, 'filetype':'music', 'filesize': 100},
+                    2:{'latency':0.7, 'filetype':'text', 'filesize': 50},
+                    3:{'latency':0.1, 'filetype':'music', 'filesize': 50},
+                    4:{'latency':0.1, 'filetype':'video', 'filesize': 124}, 
+                    5:{'latency':0.5, 'filetype':'music', 'filesize': 100},
+                    6:{'latency':0.7, 'filetype':'text', 'filesize': 50},
+                    7:{'latency':0.1, 'filetype':'music', 'filesize': 50},
+                    8:{'latency':0.1, 'filetype':'video', 'filesize': 124}, 
+                    9:{'latency':0.5, 'filetype':'music', 'filesize': 13},
+                    10:{'latency':0.7, 'filetype':'text', 'filesize': 1},
+                    11:{'latency':0.1, 'filetype':'music', 'filesize': 50},
+                    12:{'latency':0.1, 'filetype':'video', 'filesize': 124}, 
+                    13:{'latency':0.5, 'filetype':'music', 'filesize': 13},
+                    14:{'latency':0.7, 'filetype':'text', 'filesize': 1},
+                    15:{'latency':0.1, 'filetype':'music', 'filesize': 50}
                     }
 
 
@@ -114,7 +126,7 @@ for i in range(NUMBER_STATIONS):
 
     print(PACKETS_PER_SECOND)
 
-    packet_size = i*100
+    packet_size = i*packet_headers[i]['filesize']
 
     packet_header = packet_headers[i]
 
@@ -147,8 +159,9 @@ ap.run()
 end = time.time()
 
 
+count += end - start
 
 print('Took {} seconds'.format(end-start), "\n")
-
+# print(count/3)
 sys.exit(0)
 
