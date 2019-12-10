@@ -154,6 +154,7 @@ class RTS_CTS(station.Station):
 						randomNum = random.randint(0, (2 ** k) - 1)
 
 						while randomNum > 0:
+
 							time.sleep(0.01*alpha*self.packet_size)
 							# time.sleep(0.01)
 
@@ -169,7 +170,6 @@ class RTS_CTS(station.Station):
 						recv = self.receive()
 
 						if recv == 'CTS':
-
 
 							# while loop because if no ACK is received by the AP then it deadlocks.
 							# If the ACK is sent and then immediately breaks, the reservation is never freed

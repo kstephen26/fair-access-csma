@@ -36,6 +36,8 @@ class AccessPoint():
 		count = 0
 		id_dict = {}
 		actid = None
+		run = 'contentbased'
+		costs = []
 
 		while True:
 			# Wait until we have a "packet" to receive from some station.
@@ -83,7 +85,11 @@ class AccessPoint():
 						self.pkts_received[msg['id']] += 1
 						self.active[msg['id']]['tx'] = None
 						self.cts_node = None
-						time.sleep(0.00001*header['filesize']/header['latency'])			
+
+			#Why would this be going here? That is only delaying the ACK
+						#size_factor = 0.0001
+						#sleeptime = header['filesize']*1/header['latency']*size_factor 
+						#time.sleep(sleeptime)
 						self._send_to_station(msg['id'], 'ACK')
 						#print('AP: Got packet #{} from station id:{}'.format(self.pkts_received[msg['id']], msg['id']))
 					else:
@@ -95,126 +101,82 @@ class AccessPoint():
 						# print('AP: Data packet from {} was corrupted'.format(msg['id']))
 
 			elif msg['type'] == 'RTS':
-				if msg['mod'] == 'START':
-					self.active[msg['id']]['tx'] = 'RTS'
-					# Check if any other transmissions should be corrupted
-					self._check_for_collisions(msg['id'])
+
+				if run == 'basecase':
+
+					if msg['mod'] == 'START':
+						self.active[msg['id']]['tx'] = 'RTS'
+						# Check if any other transmissions should be corrupted
+						self._check_for_collisions(msg['id'])
 
 
-				elif msg['mod'] == 'DONE':
-					if self.active[msg['id']]['corrupted'] == False:
-						if self.cts_node != None:
-							print('Um, another node has control!')
+					elif msg['mod'] == 'DONE':
+						if self.active[msg['id']]['corrupted'] == False:
+							if self.cts_node != None:
+								print('Um, another node has control!')
+							else:
+								self.cts_node = msg['id']
+								self._send_to_station(msg['id'], 'CTS')
+
 						else:
-							self.cts_node = msg['id']
-							self._send_to_station(msg['id'], 'CTS')
+							# Packet was corrupted, nothing we can do.
+							self.active[msg['id']]['tx'] = None
+							self.active[msg['id']]['corrupted'] = False
+							self._send_to_station(msg['id'], 'NOCTS')
 
-					else:
-						# Packet was corrupted, nothing we can do.
-						self.active[msg['id']]['tx'] = None
-						self.active[msg['id']]['corrupted'] = False
-						self._send_to_station(msg['id'], 'NOCTS')
+				elif run == 'contentbased':
 
-				# elif msg['type'] == 'RTS':
+					if msg['mod'] == 'START':
 
-				# 	if random.random() < 0.7:
-				# 		self.active[msg['id']]['tx'] = 'RTS'
-				# 		self._check_for_collisions(msg['id'])
-				# 		if self.active[msg['id']]['corrupted'] == False:
-				# 			self.cts_node = msg['id']
-				# 			self._send_to_station(msg['id'], 'CTS')
-				# 		else:
-				# 			# Packet was corrupted, nothing we can do.
-				# 			self.active[msg['id']]['tx'] = None
-				# 			self.active[msg['id']]['corrupted'] = False
-				# 			self._send_to_station(msg['id'], 'NOCTS')
-
-				# if msg['mod'] == 'START':
-
-				# 	self.active[msg['id']]['tx'] = 'RTS'
-				# 	# Check if any other transmissions should be corrupted
-				# 	self._check_for_collisions(msg['id'])
-				# 	# build a probabilistic function that assigns priorities to users based on the contents in their file
-				
-				# elif msg['mod'] == 'DONE':
-				# 	if self.active[msg['id']]['corrupted'] == False:
-				# 		if self.cts_node != None:
-				# 			print('Um, another node has control!')
-				# 		else:
-				# 			k = 0.7
-				# 			alpha = 0.8
-				# 			beta = 0.3
-				# 			gamma = 0.05
-				# 			#possibly modify based on total packets needed to send
-				# 			delta =0.1
-				# 			header = msg['header']
-				# 			proportion = self.pkts_received[msg['id']] / self.pkts_to_receive
-				# 			#packetpr = self.pkts_received[msg['id']]
-				# 			p = header['latency']
-				# 			filepr = 0.1
-				# 			sizepr = header['filesize'] 
-				# 			if header['filetype'] == 'music':
-				# 				filepr = 0.3
-				# 				# print("music")
-				# 			elif header['filetype'] == 'video':
-				# 				filepr = 0.4
-				# 				# print("video")
-				# 			elif header['filetype'] == 'text':
-				# 				filepr = 0.6
-				# 				# print("text")
-				# 			#print(alpha*p, beta*filepr, gamma*sizepr,1- delta*proportion)
-				# 			priority = (alpha*p + beta*filepr + gamma*sizepr + (1 - delta*proportion))
+						self.active[msg['id']]['tx'] = 'RTS'
+						# Check if any other transmissions should be corrupted
+						self._check_for_collisions(msg['id'])
+						# build a probabilistic function that assigns priorities to users based on the contents in their file
 					
-				# 			if random.random() < priority:
-				# 				self.cts_node = msg['id']
-				# 				self._send_to_station(msg['id'], 'CTS')
-				# 			else:
-				# 				# Packet was corrupted, nothing we can do.
-				# 				self.active[msg['id']]['tx'] = None
-				# 				self.active[msg['id']]['corrupted'] = False
-				# 				self._send_to_station(msg['id'], 'NOCTS')
-
-				# elif msg['mod'] == 'DONE':
-
-				# 	pq = []
-				# 	if self.active[msg['id']]['corrupted'] == False:
-				# 		print("hello")
-				# 		if self.cts_node != None:
-				# 			print('Um, another node has control!')
-				# 		else:
-							
-				# 			header = msg['header']
-				# 			print(header['filetype'])
-				# 			if header['filetype'] == 'music':
-				# 				if random.random() <= 0.99:
-				# 					self.cts_node = msg['id']
-				# 					self._send_to_station(msg['id'], 'CTS')
-				# 					print("sending CTS For: ", msg['id'])
-				# 				else:
-				# 					self.active[msg['id']]['tx'] = None
-				# 					self.active[msg['id']]['corrupted'] = False
-				# 					self._send_to_station(msg['id'], 'NOCTS')
-				# 			if header['filetype'] == 'video':
-				# 				if random.random() <= 0.99:
-				# 					self.cts_node = msg['id']
-				# 					self._send_to_station(msg['id'], 'CTS')
-				# 					print("sending CTS For: ", msg['id'])
-				# 				else:
-				# 					pq.append(msg['id'])
-				# 					if random.random() < 0.7:
-				# 						self.cts_node = pq[0]
-				# 						self._send_to_station(pq[0], 'CTS')
-				# 			if header['filetype'] == 'text':
-				# 				if random.random() <= 0.99:
-				# 					self.cts_node = msg['id']
-				# 					self._send_to_station(msg['id'], 'CTS')
-				# 					print("sending CTS For: ", msg['id'])
-				# 				else:
-				# 					pq.append(msg['id'])
-				# 					if random.random() < 0.7:
-				# 						self.cts_node = pq[0]
-				# 						self._send_to_station(pq[0], 'CTS')
+					elif msg['mod'] == 'DONE':
+						if self.active[msg['id']]['corrupted'] == False:
+							if self.cts_node != None:
+								print('Um, another node has control!')
+							else:
+								k = 0.7
+								alpha = 0.8
+								beta = 0.3
+								gamma = 0.05
+								#possibly modify based on total packets needed to send
+								delta =0.1
+								header = msg['header']
+								proportion = self.pkts_received[msg['id']] / self.pkts_to_receive
+								#packetpr = self.pkts_received[msg['id']]
+								p = header['latency']
+								filepr = 0.1
+								sizepr = header['filesize'] 
+								if header['filetype'] == 'music':
+									filepr = 0.3
+									# print("music")
+								elif header['filetype'] == 'video':
+									filepr = 0.4
+									# print("video")
+								elif header['filetype'] == 'text':
+									filepr = 0.6
+									# print("text")
+								#print(alpha*p, beta*filepr, gamma*sizepr,1- delta*proportion)
+								priority = (alpha*p + beta*filepr + gamma*sizepr + (1 - delta*proportion))
 						
+								if random.random() < priority:
+									self.cts_node = msg['id']
+									self._send_to_station(msg['id'], 'CTS')
+								else:
+									# Packet was corrupted, nothing we can do.
+									self.active[msg['id']]['tx'] = None
+									self.active[msg['id']]['corrupted'] = False
+									self._send_to_station(msg['id'], 'NOCTS')
+						else:
+							# Packet was corrupted, nothing we can do.
+							self.active[msg['id']]['tx'] = None
+							self.active[msg['id']]['corrupted'] = False
+							self._send_to_station(msg['id'], 'NOCTS')
+					
+				## Archived -- Deterministic Queue Assignment Idea with Heapq
 				# elif msg['mod'] == 'DONE':
 
 				# 	k = 0.7
@@ -270,12 +232,6 @@ class AccessPoint():
 				# 		else:
 				# 			print("corrupted!")
 
-				# else:
-				# 	# Packet was corrupted, nothing we can do.
-				# 	self.active[msg['id']]['tx'] = None
-				# 	self.active[msg['id']]['corrupted'] = False
-				# 	self._send_to_station(msg['id'], 'NOCTS')
-
 
 
 			# Check if we are all done (we have received enough packets from
@@ -286,13 +242,29 @@ class AccessPoint():
 					received_all = False
 					break
 			if received_all:
-				print(self.pkts_received)
+
+				# # calculate fairness-weighted cost on the network
+				
+				# for elt in :
+				print(self.recv_queue)
+
+				costs = self._calcCosts()
+
+				print("Packets Received Per User: ", self.pkts_received)
+				# print("Total Network Cost: ", sum(costs))
 				break
 
 
 	##
 	## Internal Functions
 	##
+	def _calcCosts(self):
+		costs = []
+		while True:
+			sg = self.recv_queue.get()
+			header = msg['header']
+			costs.append(0.01*header['filesize'])
+
 
 	def _check_for_collisions(self, id):
 		# If there are no collisions at the access point then we can
