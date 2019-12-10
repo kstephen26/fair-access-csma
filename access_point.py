@@ -1,5 +1,6 @@
 import heapq
 import random
+import copy
 import time
 
 class AccessPoint():
@@ -7,11 +8,12 @@ class AccessPoint():
 	Main controller of the network that collects packets from each station.
 	'''
 
-	def __init__(self, recv_queue, station_queues, tx_range, ap_mode='normal', pkts_to_receive=100):
+	def __init__(self, recv_queue, station_queues, tx_range, costs, ap_mode='normal', pkts_to_receive=10):
 		# Save the queues we use to talk to the stations.
 		self.recv_queue = recv_queue
+		self.costqueue = []
 		self.station_queues = station_queues
-
+		self.costs = costs
 		# Save configuration about how the network should work.
 		self.tx_range = tx_range
 		self.ap_mode = ap_mode
@@ -27,6 +29,8 @@ class AccessPoint():
 		self.cts_node = None
 
 
+
+
 	def run(self):
 		# Loop until we have enough packets from each station.
 
@@ -36,7 +40,7 @@ class AccessPoint():
 		count = 0
 		id_dict = {}
 		actid = None
-		run = 'contentbased'
+		run = 'basecase'
 		costs = []
 
 		while True:
@@ -141,7 +145,7 @@ class AccessPoint():
 								k = 0.7
 								alpha = 0.8
 								beta = 0.3
-								gamma = 0.05
+								gamma = 1
 								#possibly modify based on total packets needed to send
 								delta =0.1
 								header = msg['header']
@@ -159,9 +163,10 @@ class AccessPoint():
 								elif header['filetype'] == 'text':
 									filepr = 0.6
 									# print("text")
-								#print(alpha*p, beta*filepr, gamma*sizepr,1- delta*proportion)
-								priority = (alpha*p + beta*filepr + gamma*sizepr + (1 - delta*proportion))
-						
+								# print(alpha*p, beta*filepr, gamma*sizepr,1- delta*proportion)
+								priority = 0.6*(alpha*p + beta*filepr + gamma/sizepr) 
+									# + (1 - delta*proportion))
+								print(priority)
 								if random.random() < priority:
 									self.cts_node = msg['id']
 									self._send_to_station(msg['id'], 'CTS')
@@ -248,24 +253,19 @@ class AccessPoint():
 				# for elt in :
 				print(self.recv_queue)
 
-				costs = self._calcCosts()
+				xcosts = [self.costs[i]*self.pkts_received[i] for i in range(len(self.pkts_received))]
 
 				print("Packets Received Per User: ", self.pkts_received)
-				# print("Total Network Cost: ", sum(costs))
+				print("Total Network Cost: ", sum(xcosts))
 				break
 
 
 	##
-	## Internal Functions
-	##
-	def _calcCosts(self):
-		costs = []
-		while True:
-			msg = self.recv_queue.get()
-			header = msg['header']
-			costs.append(0.01*header['filesize'])
-
-
+	# ## Internal Functions
+	# ##
+	# def _calcCosts(self):
+	# 	costs = []
+		
 	def _check_for_collisions(self, id):
 		# If there are no collisions at the access point then we can
 		# quickly return.

@@ -18,7 +18,7 @@ count = 0
 
 # Handle command line arguments.
 # for i in range(3):
-sys.argv = ['project.py', '4', '25', '100', 'neighbors', 'normal', 'RTS_CTS']
+sys.argv = ['project.py', '4', '25', '10', 'neighbors', 'normal', 'RTS_CTS']
 
 
 
@@ -100,24 +100,25 @@ station_queues = []
 
 # Setup and start each wireless station.
 
-packet_headers = {0:{'latency':0.1, 'filetype':'video', 'filesize': 124}, 
-                    1:{'latency':0.5, 'filetype':'music', 'filesize': 100},
-                    2:{'latency':0.7, 'filetype':'text', 'filesize': 50},
+packet_headers = {0:{'latency':0.1, 'filetype':'video', 'filesize': 1200}, 
+                    1:{'latency':0.5, 'filetype':'music', 'filesize': 10},
+                    2:{'latency':0.7, 'filetype':'text', 'filesize': 5},
                     3:{'latency':0.1, 'filetype':'music', 'filesize': 50},
-                    4:{'latency':0.1, 'filetype':'video', 'filesize': 124}, 
-                    5:{'latency':0.5, 'filetype':'music', 'filesize': 100},
-                    6:{'latency':0.7, 'filetype':'text', 'filesize': 50},
+                    4:{'latency':0.1, 'filetype':'video', 'filesize': 1200}, 
+                    5:{'latency':0.5, 'filetype':'music', 'filesize': 10},
+                    6:{'latency':0.7, 'filetype':'text', 'filesize': 5},
                     7:{'latency':0.1, 'filetype':'music', 'filesize': 50},
-                    8:{'latency':0.1, 'filetype':'video', 'filesize': 124}, 
-                    9:{'latency':0.5, 'filetype':'music', 'filesize': 13},
-                    10:{'latency':0.7, 'filetype':'text', 'filesize': 1},
-                    11:{'latency':0.1, 'filetype':'music', 'filesize': 50},
-                    12:{'latency':0.1, 'filetype':'video', 'filesize': 124}, 
-                    13:{'latency':0.5, 'filetype':'music', 'filesize': 13},
+                    8:{'latency':0.1, 'filetype':'video', 'filesize': 1200}, 
+                    9:{'latency':0.5, 'filetype':'music', 'filesize': 10},
+                    10:{'latency':0.7, 'filetype':'text', 'filesize': 6},
+                    11:{'latency':0.1, 'filetype':'music', 'filesize': 80},
+                    12:{'latency':0.1, 'filetype':'video', 'filesize': 1230}, 
+                    13:{'latency':0.5, 'filetype':'music', 'filesize': 14},
                     14:{'latency':0.7, 'filetype':'text', 'filesize': 1},
                     15:{'latency':0.1, 'filetype':'music', 'filesize': 50}
                     }
 
+costs = []
 
 for i in range(NUMBER_STATIONS):
 
@@ -130,12 +131,22 @@ for i in range(NUMBER_STATIONS):
 
     packet_header = packet_headers[i]
 
+    if packet_header['filetype'] == 'music':
+        filecost = 0.9
+        # print("music")
+    elif packet_header['filetype'] == 'video':
+        filecost = 0.8
+        # print("video")
+    elif packet_header['filetype'] == 'text':
+        filecost = 0.3
+        # print("text")
+    costs.append(0.01*packet_header['filesize']*filecost/packet_header['latency'])
+
     t = mac_protocol(i, q_to_ap, q, PACKETS_PER_SECOND, packet_size, packet_header)
 
     t.daemon = True
 
     t.start()
-
 
 
         # Delay to space stations
@@ -146,7 +157,7 @@ for i in range(NUMBER_STATIONS):
 
 # And run the access point.
 
-ap = access_point.AccessPoint(q_to_ap, station_queues, TX_RANGE, AP_MODE, PACKETS_TO_RECEIVE)
+ap = access_point.AccessPoint(q_to_ap, station_queues, TX_RANGE, costs, AP_MODE, PACKETS_TO_RECEIVE)
 
 ap.run()
 
