@@ -134,6 +134,7 @@ class RTS_CTS(station.Station):
 		self.packet_size = packet_size
 		self.header = packet_header
 
+
 	def run(self):
 		# Continuously send packets
 		alpha = 0.01

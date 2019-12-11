@@ -116,8 +116,18 @@ packet_headers = {0:{'latency':0.1, 'filetype':'video', 'filesize': 1200},
                     13:{'latency':0.5, 'filetype':'music', 'filesize': 14},
                     14:{'latency':0.7, 'filetype':'text', 'filesize': 1},
                     15:{'latency':0.1, 'filetype':'music', 'filesize': 50}
+                    }
 
 costs = []
+avgSize = 0
+avgLatency = 0
+
+for i in range(NUMBER_STATIONS):
+    avgSize += i*packet_headers[i]['filesize']
+    avgLatency += packet_headers[i]['latency']
+
+avgSize = avgSize / NUMBER_STATIONS
+avgLatency = avgLatency / NUMBER_STATIONS
 
 for i in range(NUMBER_STATIONS):
 
@@ -153,7 +163,7 @@ for i in range(NUMBER_STATIONS):
 
 # And run the access point.
 
-ap = access_point.AccessPoint(q_to_ap, station_queues, TX_RANGE, costs, AP_MODE, PACKETS_TO_RECEIVE)
+ap = access_point.AccessPoint(q_to_ap, station_queues, TX_RANGE, costs, avgLatency, avgSize, AP_MODE, PACKETS_TO_RECEIVE, )
 
 ap.run()
 

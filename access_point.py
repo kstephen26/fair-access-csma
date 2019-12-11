@@ -8,7 +8,7 @@ class AccessPoint():
 	Main controller of the network that collects packets from each station.
 	'''
 
-	def __init__(self, recv_queue, station_queues, tx_range, costs, ap_mode='normal', pkts_to_receive=10):
+	def __init__(self, recv_queue, station_queues, tx_range, costs, avgLatency, avgSize, ap_mode='normal', pkts_to_receive=10):
 		# Save the queues we use to talk to the stations.
 		self.recv_queue = recv_queue
 		self.costqueue = []
@@ -18,7 +18,8 @@ class AccessPoint():
 		self.tx_range = tx_range
 		self.ap_mode = ap_mode
 		self.pkts_to_receive = pkts_to_receive
-
+		self.avgLatency = avgLatency
+		self.avgSize = avgSize
 		# Keep track of what each station is doing, how many packets we
 		# have received from each station, and, if needed, which station has
 		# control of the wireless channel.
@@ -40,7 +41,7 @@ class AccessPoint():
 		count = 0
 		id_dict = {}
 		actid = None
-		run = 'basecase'
+		run = 'contentbased'
 		costs = []
 
 		while True:
@@ -143,9 +144,9 @@ class AccessPoint():
 								print('Um, another node has control!')
 							else:
 								k = 0.7
-								alpha = 0.8
+								alpha = 0.15
 								beta = 0.3
-								gamma = 1
+								gamma = 50
 								#possibly modify based on total packets needed to send
 								delta =0.01
 								header = msg['header']
@@ -157,9 +158,9 @@ class AccessPoint():
 								p = header['latency']
 								filepr = 0.1
 								sizepr = header['filesize'] 
-								if header['priority'] == header['filetype']:
-									filepr = 0.6
-								elif header['filetype'] == 'music':
+								# if header['priority'] == header['filetype']:
+								# 	filepr = 0.6
+								if header['filetype'] == 'music':
 									filepr = 0.3
 									# print("music")
 								elif header['filetype'] == 'video':
@@ -169,9 +170,13 @@ class AccessPoint():
 									filepr = 0.6
 									# print("text")
 								#print(alpha*p, beta*filepr, gamma*sizepr,1- delta*proportion)
-								priority = 0.6*(alpha*p + beta*filepr + gamma/sizepr + (1-delta*proportion))
+								#print("lat",p*alpha, "vs", p*0.4/self.avgLatency)
+								#print("size",1/sizepr, "vs", gamma/(sizepr*self.avgSize))
+
+								test = 0.6*(p*0.15/self.avgLatency + beta*filepr + gamma/(sizepr*self.avgSize) + (1-delta*proportion))
+								priority = 0.6*(p*alpha + beta*filepr + 1/sizepr + (1-delta*proportion))
 					
-								if random.random() < priority:
+								if random.random() < test:
 									self.cts_node = msg['id']
 									self._send_to_station(msg['id'], 'CTS')
 								else:

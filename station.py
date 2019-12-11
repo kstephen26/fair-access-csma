@@ -18,7 +18,6 @@ class Station(threading.Thread):
 		self.last_tx = None
 		self.packet_size = packet_size
 		self.packet_header = packet_header
-
 		print('Setting up station id:{}'.format(id))
 
 		super().__init__(*args, **kwargs)
