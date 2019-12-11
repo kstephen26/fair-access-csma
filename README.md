@@ -2,7 +2,7 @@
 
 System Architecture and Running Our Code
 
-In order to create a modified file sharing network, we peer under the hood of an existing Collision Avoidance simulation that we gleaned from the following code library: LINK. The simulation is organized using the following files to initialize users, use MAC protocols, and follow packets from their source to destination among multiple users. To run our modified code, execute $ python3 project.py, which in turn calls the other three files in this library. 
+In order to create a modified file sharing network, we peer under the hood of an existing Collision Avoidance simulation that we gleaned from the following code library: LINK. The simulation is organized using the following files to initialize users, use MAC protocols, and follow packets from their source to destination among multiple users. To run our modified code, execute $ python3 project.py, which in turn calls the other three files in this library. User parameters can be adjusted in project.py, whereas controller parameters can be modified (i.e. to call different modifications of the network) in access_point.py.
 
 Mac.py: Provides the specifications for each MAC address sending information over the network, as well as the protocols that each MAC address uses to send packets. Each MAC protocol class in MAC, for example the RTS_CTS class, is an instance of a station class that specifies how a station using this MAC protocol sends packets.
 
